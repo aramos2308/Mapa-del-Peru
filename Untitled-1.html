@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mapa del Perú por regiones</title>
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+
+  <style>
+    :root {
+      --fondo: #f7f2ef;
+      --texto: #083344;
+      --subtexto: #475569;
+      --borde-region: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--fondo);
+    }
+
+    .contenedor {
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+    }
+
+    .tarjeta-mapa {
+      position: relative;
+      width: 900px;
+      max-width: 100%;
+      background: var(--fondo);
+      border-radius: 28px;
+      padding: 24px;
+    }
+
+    .titulo {
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    .titulo h1 {
+      margin: 0;
+      font-size: 30px;
+      color: var(--texto);
+      font-weight: 800;
+      letter-spacing: 0.3px;
+    }
+
+    .titulo p {
+      margin: 8px 0 0;
+      font-size: 15px;
+      color: var(--subtexto);
+    }
+
+    #mapa {
+      position: relative;
+      width: 100%;
+      height: 780px;
+      background: transparent;
+      border-radius: 24px;
+      overflow: hidden;
+    }
+
+    .leaflet-container {
+      background: transparent !important;
+    }
+
+    /* Nombres de regiones más pequeños y menos invasivos */
+    .region-label {
+      background: rgba(255, 255, 255, 0.12);
+      border: none;
+      box-shadow: none;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 8.2px;
+      line-height: 1.05;
+      text-align: center;
+      text-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.52),
+        0 0 4px rgba(0, 0, 0, 0.30);
+      letter-spacing: 0.15px;
+      white-space: normal;
+      max-width: 76px;
+      padding: 1px 3px;
+      border-radius: 6px;
+      pointer-events: none;
+    }
+
+    .region-label.pequena {
+      font-size: 7px;
+      max-width: 58px;
+      line-height: 1;
+      padding: 1px 2px;
+    }
+
+    .region-label.muy-pequena {
+      font-size: 6.4px;
+      max-width: 48px;
+      line-height: 1;
+      padding: 1px 2px;
+    }
+
+    .leaflet-tooltip-top::before,
+    .leaflet-tooltip-bottom::before,
+    .leaflet-tooltip-left::before,
+    .leaflet-tooltip-right::before {
+      display: none;
+    }
+
+    /* Tarjetita flotante al pasar el cursor */
+    .info-card {
+      position: absolute;
+      z-index: 1000;
+      min-width: 180px;
+      max-width: 230px;
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid rgba(15, 23, 42, 0.10);
+      border-radius: 16px;
+      box-shadow: 0 16px 38px rgba(15, 23, 42, 0.18);
+      color: #0f172a;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.12s ease, transform 0.12s ease;
+    }
+
+    .info-card.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .info-card__titulo {
+      margin: 0 0 8px;
+      color: #083344;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .info-card__subtitulo {
+      margin: 0 0 8px;
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .info-card__lista {
+      margin: 0;
+      padding-left: 16px;
+      color: #334155;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 768px) {
+      .contenedor {
+        padding: 10px;
+      }
+
+      .tarjeta-mapa {
+        padding: 8px;
+      }
+
+      .titulo h1 {
+        font-size: 22px;
+      }
+
+      #mapa {
+        height: 650px;
+      }
+
+      .region-label {
+        font-size: 6.7px;
+        max-width: 60px;
+      }
+
+      .region-label.pequena {
+        font-size: 6px;
+        max-width: 46px;
+      }
+
+      .region-label.muy-pequena {
+        font-size: 5.5px;
+        max-width: 38px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="contenedor">
+    <div class="tarjeta-mapa">
+      <div class="titulo">
+        <h1>Mapa del Perú</h1>
+        <p>Regiones del Perú</p>
+      </div>
+
+      <div id="mapa"></div>
+      <div id="infoCard" class="info-card"></div>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Turf JS: se usa para unir las provincias de Lima en un solo polígono llamado Lima Provincias -->
+  <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+
+  <script>
+    const mapa = L.map("mapa", {
+      zoomControl: false,
+      attributionControl: false,
+      scrollWheelZoom: false,
+      dragging: false,
+      doubleClickZoom: false,
+      boxZoom: false,
+      keyboard: false,
+      tap: false
+    });
+
+    const infoCard = document.getElementById("infoCard");
+
+    const geojsonDepartamentosUrl =
+      "https://raw.githubusercontent.com/juaneladio/peru-geojson/master/peru_departamental_simple.geojson";
+
+    const geojsonProvinciasUrl =
+      "https://raw.githubusercontent.com/juaneladio/peru-geojson/master/peru_provincial_simple.geojson";
+
+    const coloresPorRegion = {
+      "AMAZONAS": "#14B8A6",
+      "ANCASH": "#F97316",
+      "APURIMAC": "#FB7185",
+      "AREQUIPA": "#F43F5E",
+      "AYACUCHO": "#A855F7",
+      "CAJAMARCA": "#EC4899",
+      "CALLAO": "#8B5CF6",
+      "CUSCO": "#38BDF8",
+      "HUANCAVELICA": "#22C55E",
+      "HUANUCO": "#F43F5E",
+      "ICA": "#F97316",
+      "JUNIN": "#F59E0B",
+      "LA LIBERTAD": "#A855F7",
+      "LAMBAYEQUE": "#0F766E",
+      "LIMA METROPOLITANA": "#7C3AED",
+      "LIMA PROVINCIAS": "#38BDF8",
+      "LORETO": "#14B8A6",
+      "MADRE DE DIOS": "#EC4899",
+      "MOQUEGUA": "#2DD4BF",
+      "PASCO": "#C084FC",
+      "PIURA": "#38BDF8",
+      "PUNO": "#0F766E",
+      "SAN MARTIN": "#38BDF8",
+      "TACNA": "#A855F7",
+      "TUMBES": "#06B6D4",
+      "UCAYALI": "#0F766E"
+    };
+
+    const nombresConTildes = {
+      "AMAZONAS": "Amazonas",
+      "ANCASH": "Áncash",
+      "APURIMAC": "Apurímac",
+      "AREQUIPA": "Arequipa",
+      "AYACUCHO": "Ayacucho",
+      "CAJAMARCA": "Cajamarca",
+      "CALLAO": "Callao",
+      "CUSCO": "Cusco",
+      "HUANCAVELICA": "Huancavelica",
+      "HUANUCO": "Huánuco",
+      "ICA": "Ica",
+      "JUNIN": "Junín",
+      "LA LIBERTAD": "La Libertad",
+      "LAMBAYEQUE": "Lambayeque",
+      "LIMA METROPOLITANA": "Lima Metropolitana",
+      "LIMA PROVINCIAS": "Lima Provincias",
+      "LORETO": "Loreto",
+      "MADRE DE DIOS": "Madre de Dios",
+      "MOQUEGUA": "Moquegua",
+      "PASCO": "Pasco",
+      "PIURA": "Piura",
+      "PUNO": "Puno",
+      "SAN MARTIN": "San Martín",
+      "TACNA": "Tacna",
+      "TUMBES": "Tumbes",
+      "UCAYALI": "Ucayali"
+    };
+
+    // Aquí podrás reemplazar CITE 1, CITE 2, etc. por los nombres reales.
+    // Ejemplo: "AREQUIPA": ["CITE Cuero y Calzado Arequipa", "CITE Agroindustrial Majes"]
+    const citesPorRegion = {
+      "AMAZONAS": ["CITE 1", "CITE 2"],
+      "ANCASH": ["CITE 1", "CITE 2"],
+      "APURIMAC": ["CITE 1", "CITE 2"],
+      "AREQUIPA": ["CITE 1", "CITE 2"],
+      "AYACUCHO": ["CITE 1", "CITE 2"],
+      "CAJAMARCA": ["CITE 1", "CITE 2"],
+      "CALLAO": ["CITE 1", "CITE 2"],
+      "CUSCO": ["CITE 1", "CITE 2"],
+      "HUANCAVELICA": ["CITE 1", "CITE 2"],
+      "HUANUCO": ["CITE 1", "CITE 2"],
+      "ICA": ["CITE 1", "CITE 2"],
+      "JUNIN": ["CITE 1", "CITE 2"],
+      "LA LIBERTAD": ["CITE 1", "CITE 2"],
+      "LAMBAYEQUE": ["CITE 1", "CITE 2"],
+      "LIMA METROPOLITANA": ["CITE 1", "CITE 2"],
+      "LIMA PROVINCIAS": ["CITE 1", "CITE 2"],
+      "LORETO": ["CITE 1", "CITE 2"],
+      "MADRE DE DIOS": ["CITE 1", "CITE 2"],
+      "MOQUEGUA": ["CITE 1", "CITE 2"],
+      "PASCO": ["CITE 1", "CITE 2"],
+      "PIURA": ["CITE 1", "CITE 2"],
+      "PUNO": ["CITE 1", "CITE 2"],
+      "SAN MARTIN": ["CITE 1", "CITE 2"],
+      "TACNA": ["CITE 1", "CITE 2"],
+      "TUMBES": ["CITE 1", "CITE 2"],
+      "UCAYALI": ["CITE 1", "CITE 2"]
+    };
+
+    function normalizar(texto) {
+      return String(texto || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim()
+        .toUpperCase();
+    }
+
+    function obtenerDepartamento(feature) {
+      return normalizar(
+        feature.properties.NOMBDEP ||
+        feature.properties.FIRST_NOMB ||
+        feature.properties.DEPARTAMENTO ||
+        feature.properties.DEPARTAM ||
+        ""
+      );
+    }
+
+    function obtenerProvincia(feature) {
+      return normalizar(
+        feature.properties.NOMBPROV ||
+        feature.properties.PROVINCIA ||
+        ""
+      );
+    }
+
+    function obtenerNombreNormalizado(feature) {
+      return normalizar(feature.properties._nombreMapa || feature.properties.NOMBDEP || "");
+    }
+
+    function obtenerNombreMapa(feature) {
+      const nombre = obtenerNombreNormalizado(feature);
+      return nombresConTildes[nombre] || nombre;
+    }
+
+    function obtenerColor(nombreNormalizado) {
+      return coloresPorRegion[nombreNormalizado] || "#14B8A6";
+    }
+
+    function obtenerCites(nombreNormalizado) {
+      return citesPorRegion[nombreNormalizado] || ["CITE 1", "CITE 2"];
+    }
+
+    function unirPoligonos(features, nombreMapa) {
+      if (!features.length) return null;
+
+      let unido = features[0];
+
+      for (let i = 1; i < features.length; i++) {
+        try {
+          unido = turf.union(unido, features[i]);
+        } catch (error) {
+          console.warn("No se pudo unir una provincia de Lima:", features[i].properties, error);
+        }
+      }
+
+      unido.properties = {
+        ...unido.properties,
+        _nombreMapa: nombreMapa
+      };
+
+      return unido;
+    }
+
+    function dividirNombreParaEtiqueta(nombreRegion) {
+      return nombreRegion
+        .replace("Lima Metropolitana", "Lima<br>Metrop.")
+        .replace("Lima Provincias", "Lima<br>Prov.")
+        .replace("Madre de Dios", "Madre<br>de Dios")
+        .replace("La Libertad", "La<br>Libertad")
+        .replace("San Martín", "San<br>Martín")
+        .replace("Huancavelica", "Huanca<br>velica");
+    }
+
+    function crearEtiqueta(layer, nombreRegion) {
+      let clase = "region-label";
+
+      if (["Callao", "Lima Metropolitana", "Lima Provincias", "Tumbes", "Moquegua", "Tacna", "Pasco"].includes(nombreRegion)) {
+        clase += " pequena";
+      }
+
+      if (["Callao", "Lima Metropolitana"].includes(nombreRegion)) {
+        clase += " muy-pequena";
+      }
+
+      layer.bindTooltip(dividirNombreParaEtiqueta(nombreRegion), {
+        permanent: true,
+        direction: "center",
+        className: clase,
+        opacity: 0.92
+      });
+    }
+
+    function mostrarTarjeta(eventoOriginal, nombreNormalizado, nombreRegion) {
+      const cites = obtenerCites(nombreNormalizado);
+      const lista = cites.map(cite => `<li>${cite}</li>`).join("");
+
+      infoCard.innerHTML = `
+        <p class="info-card__titulo">${nombreRegion}</p>
+        <p class="info-card__subtitulo">CITES</p>
+        <ul class="info-card__lista">${lista}</ul>
+      `;
+
+      moverTarjeta(eventoOriginal);
+      infoCard.classList.add("visible");
+    }
+
+    function moverTarjeta(eventoOriginal) {
+      const contenedor = document.querySelector(".tarjeta-mapa");
+      const rect = contenedor.getBoundingClientRect();
+      const cardRect = infoCard.getBoundingClientRect();
+
+      let x = eventoOriginal.clientX - rect.left + 16;
+      let y = eventoOriginal.clientY - rect.top + 16;
+
+      if (x + cardRect.width > rect.width - 12) {
+        x = eventoOriginal.clientX - rect.left - cardRect.width - 16;
+      }
+
+      if (y + cardRect.height > rect.height - 12) {
+        y = eventoOriginal.clientY - rect.top - cardRect.height - 16;
+      }
+
+      infoCard.style.left = `${Math.max(12, x)}px`;
+      infoCard.style.top = `${Math.max(12, y)}px`;
+    }
+
+    function ocultarTarjeta() {
+      infoCard.classList.remove("visible");
+    }
+
+    Promise.all([
+      fetch(geojsonDepartamentosUrl).then(response => response.json()),
+      fetch(geojsonProvinciasUrl).then(response => response.json())
+    ]).then(([departamentos, provincias]) => {
+      const featuresFinales = [];
+
+      // 1. Agrega todos los departamentos, excepto Lima.
+      // Lima se reemplaza por dos zonas: Lima Metropolitana y Lima Provincias.
+      departamentos.features.forEach(feature => {
+        const departamento = obtenerDepartamento(feature);
+
+        if (departamento === "LIMA") return;
+
+        feature.properties._nombreMapa = departamento;
+        featuresFinales.push(feature);
+      });
+
+      // 2. Extrae las provincias del departamento de Lima.
+      const provinciasDeLima = provincias.features.filter(feature =>
+        obtenerDepartamento(feature) === "LIMA"
+      );
+
+      // 3. Lima Metropolitana: se usa la provincia de Lima.
+      // Esta contiene distritos como Ate, Santa Anita, Cercado de Lima, etc.
+      const limaMetropolitana = provinciasDeLima.find(feature =>
+        obtenerProvincia(feature) === "LIMA"
+      );
+
+      if (limaMetropolitana) {
+        limaMetropolitana.properties._nombreMapa = "LIMA METROPOLITANA";
+        featuresFinales.push(limaMetropolitana);
+      }
+
+      // 4. Lima Provincias: se unen las demás provincias de Lima.
+      // Incluye zonas como Huaura/Huacho, Huaral/Chancay, Barranca, Cañete, etc.
+      const limaProvinciasFeatures = provinciasDeLima.filter(feature =>
+        obtenerProvincia(feature) !== "LIMA"
+      );
+
+      const limaProvincias = unirPoligonos(limaProvinciasFeatures, "LIMA PROVINCIAS");
+
+      if (limaProvincias) {
+        featuresFinales.push(limaProvincias);
+      }
+
+      const geojsonFinal = {
+        type: "FeatureCollection",
+        features: featuresFinales
+      };
+
+      const capaPeru = L.geoJSON(geojsonFinal, {
+        style: function (feature) {
+          const nombre = obtenerNombreNormalizado(feature);
+
+          return {
+            fillColor: obtenerColor(nombre),
+            fillOpacity: 1,
+            color: "#ffffff",
+            weight: 3,
+            opacity: 1
+          };
+        },
+
+        onEachFeature: function (feature, layer) {
+          const nombreNormalizado = obtenerNombreNormalizado(feature);
+          const nombreRegion = obtenerNombreMapa(feature);
+
+          crearEtiqueta(layer, nombreRegion);
+
+          layer.on({
+            mouseover: function (e) {
+              e.target.setStyle({
+                weight: 5,
+                fillOpacity: 0.9
+              });
+
+              mostrarTarjeta(e.originalEvent, nombreNormalizado, nombreRegion);
+            },
+            mousemove: function (e) {
+              moverTarjeta(e.originalEvent);
+            },
+            mouseout: function (e) {
+              capaPeru.resetStyle(e.target);
+              ocultarTarjeta();
+            }
+          });
+        }
+      }).addTo(mapa);
+
+      mapa.fitBounds(capaPeru.getBounds(), {
+        padding: [10, 10]
+      });
+    }).catch(error => {
+      console.error("Error cargando los GeoJSON:", error);
+      document.getElementById("mapa").innerHTML =
+        "<p style='text-align:center;color:#991b1b;font-weight:bold;'>No se pudo cargar el mapa. Revisa tu conexión o los enlaces GeoJSON.</p>";
+    });
+  </script>
+</body>
+</html>
