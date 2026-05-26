@@ -221,14 +221,16 @@
 
   <script>
     const mapa = L.map("mapa", {
-      zoomControl: false,
-      attributionControl: false,
-      scrollWheelZoom: false,
-      dragging: false,
-      doubleClickZoom: false,
-      boxZoom: false,
-      keyboard: false,
-      tap: false
+      zoomControl: true,
+      attributionControl: true,
+      scrollWheelZoom: true,
+      dragging: true,
+      doubleClickZoom: true,
+      boxZoom: true,
+      keyboard: true,
+      tap: true,
+      minZoom: 5,
+      maxZoom: 10
     });
 
     const infoCard = document.getElementById("infoCard");
