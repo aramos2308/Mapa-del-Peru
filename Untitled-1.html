@@ -245,30 +245,30 @@
     const coloresPorRegion = {
       "AMAZONAS": "#14B8A6",
       "ANCASH": "#F97316",
-      "APURIMAC": "#FB7185",
-      "AREQUIPA": "#F43F5E",
+      "APURIMAC": "#FF0000",
+      "AREQUIPA": "#3EFADD",
       "AYACUCHO": "#A855F7",
-      "CAJAMARCA": "#EC4899",
+      "CAJAMARCA": "#C2DB00",
       "CALLAO": "#8B5CF6",
-      "CUSCO": "#38BDF8",
+      "CUSCO": "#FFEA30",
       "HUANCAVELICA": "#22C55E",
       "HUANUCO": "#F43F5E",
       "ICA": "#F97316",
       "JUNIN": "#F59E0B",
       "LA LIBERTAD": "#A855F7",
-      "LAMBAYEQUE": "#0F766E",
+      "LAMBAYEQUE": "#FF29B8",
       "LIMA METROPOLITANA": "#7C3AED",
       "LIMA PROVINCIAS": "#38BDF8",
-      "LORETO": "#14B8A6",
+      "LORETO": "#0DD12E",
       "MADRE DE DIOS": "#EC4899",
-      "MOQUEGUA": "#2DD4BF",
+      "MOQUEGUA": "#003CFF",
       "PASCO": "#C084FC",
       "PIURA": "#38BDF8",
-      "PUNO": "#0F766E",
+      "PUNO": "#95D902",
       "SAN MARTIN": "#38BDF8",
       "TACNA": "#A855F7",
       "TUMBES": "#06B6D4",
-      "UCAYALI": "#0F766E"
+      "UCAYALI": "#3131E8"
     };
 
     const nombresConTildes = {
@@ -300,35 +300,34 @@
       "UCAYALI": "Ucayali"
     };
 
-    // Aquí podrás reemplazar CITE 1, CITE 2, etc. por los nombres reales.
-    // Ejemplo: "AREQUIPA": ["CITE Cuero y Calzado Arequipa", "CITE Agroindustrial Majes"]
+    
     const citesPorRegion = {
-      "AMAZONAS": ["CITE 1", "CITE 2"],
-      "ANCASH": ["CITE 1", "CITE 2"],
-      "APURIMAC": ["CITE 1", "CITE 2"],
-      "AREQUIPA": ["CITE 1", "CITE 2"],
-      "AYACUCHO": ["CITE 1", "CITE 2"],
-      "CAJAMARCA": ["CITE 1", "CITE 2"],
-      "CALLAO": ["CITE 1", "CITE 2"],
-      "CUSCO": ["CITE 1", "CITE 2"],
-      "HUANCAVELICA": ["CITE 1", "CITE 2"],
-      "HUANUCO": ["CITE 1", "CITE 2"],
-      "ICA": ["CITE 1", "CITE 2"],
-      "JUNIN": ["CITE 1", "CITE 2"],
-      "LA LIBERTAD": ["CITE 1", "CITE 2"],
-      "LAMBAYEQUE": ["CITE 1", "CITE 2"],
-      "LIMA METROPOLITANA": ["CITE 1", "CITE 2"],
-      "LIMA PROVINCIAS": ["CITE 1", "CITE 2"],
-      "LORETO": ["CITE 1", "CITE 2"],
-      "MADRE DE DIOS": ["CITE 1", "CITE 2"],
-      "MOQUEGUA": ["CITE 1", "CITE 2"],
-      "PASCO": ["CITE 1", "CITE 2"],
-      "PIURA": ["CITE 1", "CITE 2"],
-      "PUNO": ["CITE 1", "CITE 2"],
-      "SAN MARTIN": ["CITE 1", "CITE 2"],
-      "TACNA": ["CITE 1", "CITE 2"],
-      "TUMBES": ["CITE 1", "CITE 2"],
-      "UCAYALI": ["CITE 1", "CITE 2"]
+      "AMAZONAS": ["Sin Datos"],
+      "ANCASH": ["Sin Datos"],
+      "APURIMAC": ["Sin Datos"],
+      "AREQUIPA": ["CITEagroindustrial Majes", "CITEcuero y calzado Arequipa", "CITEtextil camélidos Arequipa"],
+      "AYACUCHO": ["UTagroindustrial Ayacucho"],
+      "CAJAMARCA": ["UTmadera Cajamarca"],
+      "CALLAO": ["CITEpesquero, acuícola, agroindustrial Callao"],
+      "CUSCO": ["CITEproductivo VRAEM", "CITEtextil camélidos Cusco"],
+      "HUANCAVELICA": ["UTacuícola pesquero Huancavelica", "CITEtextil camélidos Huancavelica"],
+      "HUANUCO": ["CITEagroindustrial Huallaga", "UTagroindustrial Ambo"],
+      "ICA": ["CITEagroindustrial Ica"],
+      "JUNIN": ["UTcuero y calzado Junín"],
+      "LA LIBERTAD": ["CITEagroindustrial Chavimochic", "CITEcuero y calzado Trujillo"],
+      "LAMBAYEQUE": ["UTagroindustrial Lambayeque"],
+      "LIMA METROPOLITANA": ["CITEcuero, calzado, textil y confecciones Lima", "CITEmadera y del mueble Lima", "UTtextil y confecciones Lima", "DEDFO", "OPPM", "OGRRHH", "Dirección Ejecutiva", "DSE", "OTI", "DIDITT"],
+      "LIMA PROVINCIAS": ["UTagroindustrial Huaura", "CITE 2"],
+      "LORETO": ["CITEforestal Maynas", "CITEproductivo Maynas"],
+      "MADRE DE DIOS": ["CITEproductivo Madre de Dios"],
+      "MOQUEGUA": ["CITEagroindustrial Moquegua", "CITEpesquero Ilo"],
+      "PASCO": ["CITEagroindustrial Oxapampa"],
+      "PIURA": ["CITEpesquero, acuícola, agroindustrial Piura"],
+      "PUNO": ["CITEacuícola Puno", "CITEtextil camélidos Puno"],
+      "SAN MARTIN": ["CITEproductivo San Martín"],
+      "TACNA": ["UTagroindustrial Tacna"],
+      "TUMBES": ["Sin Datos"],
+      "UCAYALI": ["CITEforestal Pucallpa", "CITEproductivo Pucallpa"]
     };
 
     function normalizar(texto) {
@@ -430,7 +429,7 @@
 
       infoCard.innerHTML = `
         <p class="info-card__titulo">${nombreRegion}</p>
-        <p class="info-card__subtitulo">CITES</p>
+        <p class="info-card__subtitulo">CITES/UT</p>
         <ul class="info-card__lista">${lista}</ul>
       `;
 
